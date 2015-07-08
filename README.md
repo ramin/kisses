@@ -14,5 +14,5 @@ echo $AWS_SECRET_KEY
 stream and region
 
 ```
-./kisses -stream nord_customer_activities_stream -region us-east-1
+./kisses -stream nord_customer_activities_stream -region us-west-2
 ```

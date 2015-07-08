@@ -17,6 +17,33 @@ func init() {
 	flag.Parse()
 }
 
+func getShardRecords(client kinesis.KinesisClient, streamName string, shardId string, messages chan []kinesis.GetRecordsRecords) {
+	args := kinesis.NewArgs()
+	args.Add("StreamName", streamName)
+	args.Add("ShardId", shardId)
+	args.Add("ShardIteratorType", "LATEST") // AT_SEQUENCE_NUMBER | AFTER_SEQUENCE_NUMBER | TRIM_HORIZON | LATEST
+	resp, _ := client.GetShardIterator(args)
+
+	shardIterator := resp.ShardIterator
+
+	for {
+		args = kinesis.NewArgs()
+		args.Add("ShardIterator", shardIterator)
+		records, err := client.GetRecords(args)
+
+		if err != nil {
+			time.Sleep(3000 * time.Millisecond)
+			continue
+		}
+
+		messages <- records.Records
+
+		shardIterator = records.NextShardIterator
+		time.Sleep(2000 * time.Millisecond)
+	}
+}
+
+
 func main() {
 	auth, err := kinesis.NewAuthFromEnv()
 
@@ -34,37 +61,17 @@ func main() {
 	fmt.Println("finding shards")
 	args := kinesis.NewArgs()
 	args.Add("StreamName", stream)
-	resp3, _ := ksis.DescribeStream(args)
+	description, _ := ksis.DescribeStream(args)
 
-	exampleShardID := resp3.StreamDescription.Shards[0].ShardId
+	messages := make(chan []kinesis.GetRecordsRecords)
 
-	fmt.Println("connecting to shard", exampleShardID)
-
-	args = kinesis.NewArgs()
-	args.Add("StreamName", streamName)
-	args.Add("ShardId", exampleShardID)
-	args.Add("ShardIteratorType", "TRIM_HORIZON") // AT_SEQUENCE_NUMBER | AFTER_SEQUENCE_NUMBER | TRIM_HORIZON | LATEST
-	resp, _ := ksis.GetShardIterator(args)
-
-	shardIterator := resp.ShardIterator
+	for _, shard := range description.StreamDescription.Shards {
+		go getShardRecords(ksis, stream, shard.ShardId, messages)
+	}
 
 	for {
-		args = kinesis.NewArgs()
-		args.Add("ShardIterator", shardIterator)
-
-		records, err := ksis.GetRecords(args)
-
-		if err != nil {
-			fmt.Printf("{ \"error\": \"%v\" }\n", err)
-			continue
+		for _, d := range <-messages {
+			fmt.Println(string((d.GetData())))
 		}
-
-		for _, d := range records.Records {
-			fmt.Println(string(d.GetData()))
-		}
-
-		shardIterator = records.NextShardIterator
-
-		time.Sleep(3300 * time.Millisecond)
 	}
 }

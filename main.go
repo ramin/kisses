@@ -48,31 +48,23 @@ func main() {
 
 	shardIterator := resp.ShardIterator
 
-	receptions := 0
-	receivedActivity := 0
-
 	for {
 		args = kinesis.NewArgs()
 		args.Add("ShardIterator", shardIterator)
 
-		receptions += 1
-
 		records, err := ksis.GetRecords(args)
 
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("{ \"error\": \"%v\" }\n", err)
 			continue
 		}
 
 		for _, d := range records.Records {
-			fmt.Printf("GetRecords Data: %v\n", string(d.GetData()))
-			receivedActivity += 1
+			fmt.Println(string(d.GetData()))
 		}
-
-		fmt.Println("received", receivedActivity, "records in ", receptions, "requests")
 
 		shardIterator = records.NextShardIterator
 
-		time.Sleep(5000 * time.Millisecond)
+		time.Sleep(3300 * time.Millisecond)
 	}
 }

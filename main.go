@@ -61,7 +61,12 @@ func main() {
 	fmt.Println("finding shards")
 	args := kinesis.NewArgs()
 	args.Add("StreamName", stream)
-	description, _ := ksis.DescribeStream(args)
+	description, err := ksis.DescribeStream(args)
+
+	if err != nil {
+		fmt.Printf("Unable to retrieve description from kinesis API: %v", err)
+		os.Exit(1)
+	}
 
 	messages := make(chan []kinesis.GetRecordsRecords)
 

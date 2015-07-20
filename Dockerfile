@@ -9,4 +9,4 @@ ENV AWS_ACCESS_KEY <add-your-own>
 ENV AWS_SECRET_KEY <add-your-own>
 
 EXPOSE 443
-# CMD /home/kisses -stream nord_customer_activities_stream -region us-west-2
+CMD /home/kisses -stream nord_customer_activities_stream -region us-west-2

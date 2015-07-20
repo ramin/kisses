@@ -16,3 +16,14 @@ stream and region
 ```
 ./kisses -stream nord_customer_activities_stream -region us-west-2
 ```
+
+# Docker
+
+If you are so inclined
+
+```
+docker build -t kisses .
+docker run -i -t kisses
+```
+
+and watch it fly...

@@ -14,7 +14,7 @@ echo $AWS_SECRET_KEY
 stream and region
 
 ```
-./kisses -stream nord_customer_activities_stream -region us-west-2
+./kisses -stream customer_activities -region us-west-2
 ```
 
 # Docker
